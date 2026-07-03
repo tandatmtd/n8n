@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC - TỔNG HỢP ĂN TRƯA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Tùy chỉnh thanh cuộn cho bảng */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-6 flex flex-col justify-between">
+
+    <div>
+        <!-- Header cố định (Sticky Header) khi cuộn trang -->
+        <header class="bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- Logo và Tên Web -->
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="bg-white p-2.5 rounded-xl shadow-inner text-orange-600 text-2xl flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold tracking-tight">EC - TỔNG HỢP ĂN TRƯA</h1>
+                        <p class="text-[11px] text-orange-100 font-medium">Hệ thống tính tiền ăn trưa hàng tuần cho Team</p>
+                    </div>
+                </div>
+                
+                <!-- Trạng thái Bảo mật & Thông tin thanh toán kèm QR nhỏ -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto justify-end">
+                    <!-- Bảng Trạng thái Bảo mật -->
+                    <div id="admin-status-badge" class="flex items-center justify-between gap-3 bg-black/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" id="admin-dot"></span>
+                            <span class="font-bold tracking-wide text-[11px]" id="admin-text">CHẾ ĐỘ: CHỈ XEM (ĐÃ KHÓA)</span>
+                        </div>
+                        <button onclick="promptAdminPassword()" id="btn-toggle-admin" class="bg-white text-orange-600 hover:bg-orange-50 font-bold px-2.5 py-1 rounded-lg transition duration-150 shadow-sm flex items-center gap-1 text-[11px]">
+                            <i class="fa-solid fa-lock"></i> Mở khóa
+                        </button>
+                    </div>
+
+                    <!-- Thông tin nhận chuyển khoản tích hợp QR Code trực quan -->
+                    <div class="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-2.5 border border-white/20 shadow-sm shrink-0">
+                        <div class="text-right text-xs">
+                            <div class="font-bold flex items-center justify-end gap-1.5 text-yellow-300 text-[11px]">
+                                <i class="fa-solid fa-building-columns"></i> THÔNG TIN NHẬN CHUYỂN KHOẢN
+                            </div>
+                            <div class="mt-0.5 text-white/90">Chủ TK: <span class="font-semibold text-white">HUYNH TAN DAT</span></div>
+                            <div class="text-white/90">TPBank: <span class="font-mono font-semibold text-white">77778738888</span></div>
+                        </div>
+                        <!-- Ảnh QR Code của tài khoản ngân hàng -->
+                        <div class="bg-white p-1 rounded-lg shadow-sm cursor-pointer shrink-0 hover:scale-105 transition duration-150" title="Nhấn để xem QR tài khoản" onclick="showAccountQR()">
+                            <img src="https://img.vietqr.io/image/tpb-77778738888-compact.png?accountName=HUYNH%20TAN%20DAT" alt="TPBank VietQR" class="w-[60px] h-[60px] object-contain rounded">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            
+            <!-- Hướng dẫn & Cấu hình tuần -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Thời gian -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-semibold text-slate-900 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-calendar-days text-orange-500"></i> Thời gian
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Ngày bắt đầu (T2)</label>
+                                <input type="date" id="week-start" class="admin-editable w-full text-sm border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-orange-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400" value="2026-06-29" disabled>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Ngày kết thúc (T6)</label>
+                                <input type="text" id="week-end" class="w-full text-sm border border-slate-200 bg-slate-50 text-slate-500 rounded-lg p-2 focus:outline-none font-medium cursor-not-allowed" value="03/07/2026" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="changeWeek(0)" id="btn-current-week" class="admin-editable flex-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 text-xs py-2 px-3 rounded-lg font-medium transition duration-150 flex items-center justify-center gap-1" disabled>
+                            <i class="fa-solid fa-calendar-day"></i> Tuần hiện tại
+                        </button>
+                        <button onclick="exportJSON()" id="btn-export" class="admin-editable bg-blue-50 hover:bg-blue-100 disabled:opacity-50 text-blue-600 text-xs py-2 px-3 rounded-lg font-medium transition duration-150 flex items-center justify-center gap-1" title="Lưu trữ dữ liệu" disabled>
+                            <i class="fa-solid fa-download"></i> Lưu dữ liệu
+                        </button>
+                        <button onclick="triggerImport()" id="btn-import" class="admin-editable bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-600 text-xs py-2 px-3 rounded-lg font-medium transition duration-150 flex items-center justify-center gap-1" title="Tải dữ liệu tuần cũ" disabled>
+                            <i class="fa-solid fa-upload"></i> Nhập dữ liệu
+                        </button>
+                        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(event)">
+                    </div>
+                </div>
+
+                <!-- Thêm nhanh thành viên -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-semibold text-slate-900 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-user-plus text-orange-500"></i> Quản lý thành viên
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-member-name" placeholder="Nhập tên thành viên..." class="admin-editable flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400" disabled>
+                            <button onclick="addMember()" id="btn-add-member" class="admin-editable bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-semibold text-sm px-4 py-2 rounded-lg transition duration-150 shadow-sm flex items-center gap-1.5" disabled>
+                                <i class="fa-solid fa-plus"></i> Thêm
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="openBulkMembersModal()" id="btn-bulk-member" class="admin-editable text-slate-600 hover:text-slate-900 text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-users-gear text-slate-400"></i> Nhập hàng loạt tên
+                        </button>
+                        <button onclick="resetData()" id="btn-reset-data" class="admin-editable text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center gap-1.5 ml-auto disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-trash-can"></i> Xóa hết tuần này
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chi tiêu trong tuần -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <h3 class="font-semibold text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-pen-to-square text-orange-500"></i> Chi tiêu trong tuần
+                </h3>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <!-- Nút cho từng ngày T2 -> T6 -->
+                    <button onclick="handleDayButtonClick(0)" class="day-btn bg-slate-50 border border-slate-200 p-3 rounded-xl text-left transition duration-150">
+                        <div class="text-xs font-bold text-slate-500" id="btn-day-name-0">THỨ HAI</div>
+                        <div class="text-sm font-semibold text-slate-800" id="btn-day-date-0">29/06</div>
+                        <div class="text-xs mt-1 text-orange-600 font-medium" id="btn-day-status-0">Chưa nhập</div>
+                    </button>
+                    <button onclick="handleDayButtonClick(1)" class="day-btn bg-slate-50 border border-slate-200 p-3 rounded-xl text-left transition duration-150">
+                        <div class="text-xs font-bold text-slate-500" id="btn-day-name-1">THỨ BA</div>
+                        <div class="text-sm font-semibold text-slate-800" id="btn-day-date-1">30/06</div>
+                        <div class="text-xs mt-1 text-orange-600 font-medium" id="btn-day-status-1">Chưa nhập</div>
+                    </button>
+                    <button onclick="handleDayButtonClick(2)" class="day-btn bg-slate-50 border border-slate-200 p-3 rounded-xl text-left transition duration-150">
+                        <div class="text-xs font-bold text-slate-500" id="btn-day-name-2">THỨ TƯ</div>
+                        <div class="text-sm font-semibold text-slate-800" id="btn-day-date-2">01/07</div>
+                        <div class="text-xs mt-1 text-orange-600 font-medium" id="btn-day-status-2">Chưa nhập</div>
+                    </button>
+                    <button onclick="handleDayButtonClick(3)" class="day-btn bg-slate-50 border border-slate-200 p-3 rounded-xl text-left transition duration-150">
+                        <div class="text-xs font-bold text-slate-500" id="btn-day-name-3">THỨ NĂM</div>
+                        <div class="text-sm font-semibold text-slate-800" id="btn-day-date-3">02/07</div>
+                        <div class="text-xs mt-1 text-orange-600 font-medium" id="btn-day-status-3">Chưa nhập</div>
+                    </button>
+                    <button onclick="handleDayButtonClick(4)" class="day-btn bg-slate-50 border border-slate-200 p-3 rounded-xl text-left transition duration-150">
+                        <div class="text-xs font-bold text-slate-500" id="btn-day-name-4">THỨ SÁU</div>
+                        <div class="text-sm font-semibold text-slate-800" id="btn-day-date-4">03/07</div>
+                        <div class="text-xs mt-1 text-orange-600 font-medium" id="btn-day-status-4">Chưa nhập</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tổng hợp công nợ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice-dollar text-orange-500"></i> Tổng hợp công nợ
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Giá trị hiển thị bằng Nghìn đồng. Công thức: <strong class="text-orange-600">Sum = Tổng tiền - Bù trừ</strong>.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- Đổi tên nút từ "Sao chép báo cáo Zalo" thành "Sao chép báo cáo" -->
+                        <button onclick="generateReport()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs py-2 px-3.5 rounded-lg flex items-center gap-1.5 transition duration-150">
+                            <i class="fa-solid fa-copy"></i> Sao chép báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[1100px]">
+                        <thead>
+                            <tr class="bg-slate-200 border-b border-slate-300 text-[11px] font-bold tracking-wider text-slate-700">
+                                <th class="py-3.5 px-4 w-48 sticky left-0 bg-slate-200 z-10 border-r border-slate-300 shadow-[1px_0_0_0_#cbd5e1]">HỌ & TÊN</th>
+                                <th class="py-3.5 px-3 text-center border-r border-slate-300 w-28 bg-slate-200">
+                                    <span class="block">THỨ 2</span>
+                                    <span class="text-[10px] text-slate-500 font-normal" id="header-date-0">29/06</span>
+                                </th>
+                                <th class="py-3.5 px-3 text-center border-r border-slate-300 w-28 bg-slate-200">
+                                    <span class="block">THỨ 3</span>
+                                    <span class="text-[10px] text-slate-500 font-normal" id="header-date-1">30/06</span>
+                                </th>
+                                <th class="py-3.5 px-3 text-center border-r border-slate-300 w-28 bg-slate-200">
+                                    <span class="block">THỨ 4</span>
+                                    <span class="text-[10px] text-slate-500 font-normal" id="header-date-2">01/07</span>
+                                </th>
+                                <th class="py-3.5 px-3 text-center border-r border-slate-300 w-28 bg-slate-200">
+                                    <span class="block">THỨ 5</span>
+                                    <span class="text-[10px] text-slate-500 font-normal" id="header-date-3">02/07</span>
+                                </th>
+                                <th class="py-3.5 px-3 text-center border-r border-slate-300 w-28 bg-slate-200">
+                                    <span class="block">THỨ SÁU</span>
+                                    <span class="text-[10px] text-slate-500 font-normal" id="header-date-4">03/07</span>
+                                </th>
+                                <th class="py-3.5 px-3 text-center bg-blue-100 text-blue-800 border-r border-slate-300 w-28 font-bold">BÙ TRỪ</th>
+                                <th class="py-3.5 px-3 text-center bg-amber-100 text-amber-900 border-r border-slate-300 w-28 font-bold">SUM</th>
+                                <th class="py-3.5 px-3 text-center bg-emerald-100 text-emerald-900 border-r border-slate-300 w-28 font-bold">ĐÃ TRẢ</th>
+                                <th class="py-3.5 px-3 text-center bg-rose-100 text-rose-900 w-28 font-bold">CÒN LẠI</th>
+                                <th class="py-3.5 px-3 text-center bg-slate-200 w-28 font-bold">HÀNH ĐỘNG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="members-list-table" class="divide-y divide-slate-100 text-sm">
+                            <!-- Sẽ tự động kết xuất bằng Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Trạng thái trống -->
+                <div id="empty-state" class="hidden text-center py-12">
+                    <div class="text-slate-300 text-5xl mb-3">
+                        <i class="fa-solid fa-users-slash"></i>
+                    </div>
+                    <h4 class="text-slate-600 font-semibold text-base">Danh sách trống</h4>
+                    <p class="text-xs text-slate-400 mt-1">Hãy thêm thành viên để bắt đầu quản lý.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-6 border-t border-slate-200/60 text-center text-slate-400 text-xs font-semibold">
+        <p>Design by Danny</p>
+    </footer>
+
+    <!-- BANNER NHẮC QUÉT QR (Cố định góc màn hình hoặc hiển thị như widget) -->
+    <div class="fixed bottom-4 right-4 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 max-w-sm hidden md:flex items-center gap-3.5 z-40 animate-bounce-slow">
+        <div class="bg-gradient-to-tr from-purple-500 to-indigo-600 p-2.5 rounded-xl text-white text-xl flex items-center justify-center">
+            <i class="fa-solid fa-qrcode"></i>
+        </div>
+        <div>
+            <h5 class="text-xs font-bold text-slate-800">Tự động tạo VietQR</h5>
+            <p class="text-[11px] text-slate-500 mt-0.5">Mỗi dòng hóa đơn có sẵn QR để nhân viên chuyển khoản đúng số tiền, đúng nội dung.</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 text-xs">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- HỘP THOẠI XÁC THỰC MẬT KHẨU ADMIN -->
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="bg-slate-955 text-white px-5 py-4 bg-slate-900 flex justify-between items-center">
+                <span class="font-bold text-sm"><i class="fa-solid fa-shield-halved text-orange-400 mr-1.5"></i> XÁC THỰC QUẢN TRỊ VIÊN</span>
+                <button onclick="closeAdminModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-500">Chỉ có chủ sở hữu trang web mới có quyền mở khóa để nhập liệu hóa đơn và chỉnh sửa danh sách thành viên.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu bảo mật</label>
+                    <input type="password" id="admin-password-input" class="w-full text-sm border border-slate-200 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Nhập mật khẩu..." onkeydown="if(event.key === 'Enter') submitAdminPassword()">
+                </div>
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="closeAdminModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg">Hủy bỏ</button>
+                <button onclick="submitAdminPassword()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm">Xác thực</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAY MODAL: Nhập dữ liệu và tính toán cho một ngày cụ thể -->
+    <div id="day-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header Modal -->
+            <div class="bg-orange-500 text-white px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-lg" id="modal-day-title">NHẬP LIỆU THỨ HAI</h3>
+                    <p class="text-xs text-orange-100" id="modal-day-subtitle">Ngày 29/06</p>
+                </div>
+                <button onclick="closeDayModal()" class="text-white/80 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- Thông tin khuyến mãi của app -->
+                <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-orange-800 mb-1">TỔNG GIẢM GIÁ (k)</label>
+                        <div class="relative">
+                            <input type="number" id="day-discount" oninput="calculateDayPreview()" placeholder="Ví dụ: 62" class="w-full bg-white text-sm font-semibold border border-orange-200 rounded-lg pl-3 pr-8 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span class="absolute right-3 top-2 text-xs font-semibold text-slate-400">k</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-orange-800 mb-1">TỔNG PHÍ SHIP (k)</label>
+                        <div class="relative">
+                            <input type="number" id="day-ship" oninput="calculateDayPreview()" placeholder="Ví dụ: 22" class="w-full bg-white text-sm font-semibold border border-orange-200 rounded-lg pl-3 pr-8 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span class="absolute right-3 top-2 text-xs font-semibold text-slate-400">k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tóm tắt tính toán ngày -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
+                    <div>
+                        <span class="text-slate-500 block">Số người đặt ăn:</span>
+                        <span class="text-base font-bold text-slate-800" id="preview-count">0 người</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-500 block">Mức giảm trên mỗi người:</span>
+                        <span class="text-base font-bold text-emerald-600" id="preview-discount-per-person">0 k</span>
+                    </div>
+                </div>
+
+                <!-- Danh sách nhập giá món -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xs font-bold text-slate-600 tracking-wider">GIÁ MÓN ĂN GỐC CỦA TỪNG THÀNH VIÊN (k)</h4>
+                        <button onclick="clearAllPricesInModal()" class="text-slate-400 hover:text-rose-600 text-xs font-medium">Xóa hết giá</button>
+                    </div>
+                    
+                    <div class="space-y-2 border border-slate-100 rounded-xl max-h-60 overflow-y-auto p-1.5 bg-slate-50/50" id="modal-member-prices-list">
+                        <!-- Danh sách thành viên để điền giá -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeDayModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-4 py-2 rounded-lg transition duration-150">Đóng</button>
+                <button onclick="saveDayData()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm px-5 py-2 rounded-lg shadow-md transition duration-150">Lưu thông tin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR CODE DETAIL MODAL -->
+    <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="bg-purple-600 text-white px-4 py-3 flex justify-between items-center">
+                <span class="font-bold text-sm" id="qr-title-text">VIETQR THANH TOÁN TỰ ĐỘNG</span>
+                <button onclick="closeQrModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 text-center flex flex-col items-center">
+                <h3 class="font-bold text-slate-800 text-lg" id="qr-member-name">Nguyễn Văn A</h3>
+                <p class="text-xs text-slate-500 mt-1" id="qr-instructions-text">Vui lòng quét mã bên dưới để chuyển khoản tiền ăn</p>
+                
+                <!-- Khung chứa QR -->
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 my-4 relative flex items-center justify-center w-56 h-56 shadow-inner">
+                    <img id="qr-image" class="w-full h-full object-contain" src="" alt="VietQR Code" onerror="handleQrError()">
+                    <!-- Loading Indicator -->
+                    <div id="qr-loading" class="absolute inset-0 flex items-center justify-center bg-white/95 rounded-2xl">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                            <span class="text-xs text-slate-500">Đang tải mã QR...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-50 rounded-xl p-3 text-left space-y-1.5 text-xs border border-slate-100">
+                    <div class="flex justify-between"><span class="text-slate-500">Ngân hàng:</span><span class="font-semibold text-slate-800">TPBank</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Số tài khoản:</span><span class="font-mono font-semibold text-slate-800">77778738888</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Người thụ hưởng:</span><span class="font-semibold text-slate-800">HUYNH TAN DAT</span></div>
+                    <div class="flex justify-between border-t border-slate-200/60 pt-1.5"><span class="text-slate-500">Số tiền:</span><span class="font-bold text-orange-600 text-sm" id="qr-amount">0 VND</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Nội dung:</span><span class="font-mono font-semibold text-slate-800 text-right max-w-[160px] truncate" id="qr-desc">Chuyen tien an</span></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-4 py-3 border-t border-slate-100 flex justify-end">
+                <button onclick="closeQrModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BULK MEMBERS INPUT MODAL -->
+    <div id="bulk-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div class="bg-slate-800 text-white px-5 py-3.5 flex justify-between items-center">
+                <span class="font-bold text-sm">NHẬP HÀNG LOẠT THÀNH VIÊN</span>
+                <button onclick="closeBulkMembersModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <label class="block text-xs font-semibold text-slate-500">Nhập danh sách tên thành viên (mỗi người một dòng)</label>
+                <textarea id="bulk-names-input" rows="8" class="w-full text-sm border border-slate-200 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:outline-none" placeholder="Trần Thế Đức&#10;Mai Thảo&#10;Anh Dương&#10;Thảo Nguyên"></textarea>
+                <p class="text-[10px] text-slate-400">Hệ thống sẽ giữ lại tiền của thành viên trùng tên cũ và thêm mới các thành viên chưa có.</p>
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="closeBulkMembersModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg">Hủy bỏ</button>
+                <button onclick="saveBulkMembers()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm">Lưu danh sách</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HIỂN THỊ TEXT BÁO CÁO NHÓM -->
+    <div id="report-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div class="bg-slate-905 text-white px-5 py-3.5 flex justify-between items-center bg-slate-900">
+                <span class="font-bold text-sm"><i class="fa-solid fa-clipboard-list mr-1"></i> BÁO CÁO CÔNG NỢ GỬI GROUP</span>
+                <button onclick="closeReportModal()" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <p class="text-xs text-slate-500">Báo cáo dưới đây được tối ưu hóa định dạng để gửi vào nhóm chat Skype, Zalo, Slack hoặc Messenger.</p>
+                <textarea id="report-text-area" readonly rows="12" class="w-full bg-slate-50 font-mono text-xs border border-slate-200 rounded-lg p-3 focus:outline-none"></textarea>
+            </div>
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center">
+                <span class="text-xs text-emerald-600 font-semibold hidden" id="copy-success-msg"><i class="fa-solid fa-check"></i> Đã sao chép thành công!</span>
+                <div class="flex gap-2 ml-auto">
+                    <button onclick="closeReportModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg">Đóng</button>
+                    <button onclick="copyReportText()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Sao chép tất cả
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT ĐIỀU KHIỂN LOGIC -->
+    <script>
+        // ==========================================
+        // CẤU HÌNH MẬT KHẨU ADMIN CỦA BẠN (HUYNH TAN DAT)
+        // Mật khẩu đã được đổi theo yêu cầu của bạn thành "120698"
+        // ==========================================
+        const ADMIN_PASSWORD = "120698"; 
+        const DEFAULT_TRANSFER_PREFIX = "Chuyen tien an trua"; // Nội dung chuyển khoản mặc định cố định
+
+        // Biến trạng thái quản trị
+        let isAdminUnlocked = false;
+
+        // TRẠNG THÁI KHỞI TẠO CỦA APP
+        const DEFAULT_MEMBERS = [
+            "Trần Thế Đức", "Mai Thảo", "Anh Dương", "Thảo Nguyên", "Tiểu Phụng", 
+            "Trần Tài", "Minh Nhật", "Kim Cương", "Hoàng Lan", "Tuệ Nguyễn", 
+            "Ngân Dương", "Hoàng Phương", "Quốc Tài", "Trâm Nguyễn", "Nhật Minh", 
+            "Ý Nhi", "Thẩm Kỳ", "Trần Mai Thảo Nhi", "Thanh Trúc", "Phúc Vinh", 
+            "Thế Duy", "Bảo Ngọc", "Đình Chương", "Ngân Hồ", "Ngân Giang"
+        ];
+
+        let appState = {
+            weekStartDate: "2026-06-29",
+            members: [],
+            days: [
+                { discount: 100, ship: 30, prices: { "Trần Thế Đức": 62, "Mai Thảo": 62, "Phúc Vinh": 62 } },
+                { discount: 0, ship: 0, prices: { "Hoàng Lan": 31 } },
+                { discount: 0, ship: 0, prices: { "Thảo Nguyên": 46 } },
+                { discount: 0, ship: 0, prices: {} },
+                { discount: 0, ship: 0, prices: { "Trần Thế Đức": 30, "Nhật Minh": 25, "Thế Duy": 30 } }
+            ],
+            adjustments: { "Trần Thế Đức": 100, "Phúc Vinh": 20, "Tuệ Nguyễn": -68 },
+            paid: {},
+        };
+
+        // --- HÀM ĐIỀU KHIỂN PHÂN QUYỀN ADMIN ---
+        function promptAdminPassword() {
+            if (isAdminUnlocked) {
+                // Đang mở, nhấn để khóa lại
+                isAdminUnlocked = false;
+                applyAdminRights();
+                alertModal("Đã khóa chế độ chỉnh sửa!");
+            } else {
+                // Hiện modal nhập mật khẩu
+                document.getElementById('admin-password-input').value = '';
+                document.getElementById('admin-modal').classList.remove('hidden');
+                document.getElementById('admin-password-input').focus();
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        // Xác thực mật khẩu
+        function submitAdminPassword() {
+            const input = document.getElementById('admin-password-input').value;
+            if (input === ADMIN_PASSWORD) {
+                isAdminUnlocked = true;
+                closeAdminModal();
+                applyAdminRights();
+                alertModal("Xác thực Admin thành công! Đã kích hoạt quyền chỉnh sửa.");
+            } else {
+                alertModal("Sai mật khẩu! Vui lòng thử lại.");
+            }
+        }
+
+        // Áp dụng việc khóa/mở khóa giao diện dựa trên trạng thái admin
+        function applyAdminRights() {
+            const adminInputs = document.querySelectorAll('.admin-editable');
+            const dayButtons = document.querySelectorAll('.day-btn');
+            const toggleBtn = document.getElementById('btn-toggle-admin');
+            const dot = document.getElementById('admin-dot');
+            const text = document.getElementById('admin-text');
+
+            if (isAdminUnlocked) {
+                // ĐÃ MỞ KHÓA
+                adminInputs.forEach(el => el.disabled = false);
+                
+                dayButtons.forEach(btn => {
+                    btn.classList.add('hover:bg-orange-50', 'hover:border-orange-200', 'cursor-pointer');
+                    btn.classList.remove('cursor-not-allowed', 'opacity-80');
+                });
+
+                toggleBtn.innerHTML = '<i class="fa-solid fa-unlock"></i> Khóa lại';
+                toggleBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1 rounded-lg transition duration-150 shadow-sm flex items-center gap-1 text-[11px]";
+                
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                text.innerText = "CHẾ ĐỘ: QUẢN TRỊ (ADMIN)";
+            } else {
+                // ĐÃ KHÓA (CHỈ XEM)
+                adminInputs.forEach(el => el.disabled = true);
+                
+                dayButtons.forEach(btn => {
+                    btn.classList.remove('hover:bg-orange-50', 'hover:border-orange-200', 'cursor-pointer');
+                    btn.classList.add('cursor-not-allowed', 'opacity-80');
+                });
+
+                toggleBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Mở khóa';
+                toggleBtn.className = "bg-white text-orange-600 hover:bg-orange-50 font-bold px-3 py-1 rounded-lg transition duration-150 shadow-sm flex items-center gap-1 text-[11px]";
+                
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+                text.innerText = "CHẾ ĐỘ: CHỈ XEM (ĐÃ KHÓA)";
+            }
+
+            // Vẽ lại bảng để cập nhật trạng thái disabled của các ô input
+            renderTable();
+        }
+
+        // Mở QR Code tài khoản ngân hàng chính để chuyển khoản tiện lợi
+        function showAccountQR() {
+            document.getElementById('qr-member-name').innerText = "HUYNH TAN DAT (TPBank)";
+            document.getElementById('qr-amount').innerText = "Số tiền tùy chọn";
+            document.getElementById('qr-desc').innerText = DEFAULT_TRANSFER_PREFIX;
+            document.getElementById('qr-title-text').innerText = "THÔNG TIN TÀI KHOẢN NHẬN";
+            document.getElementById('qr-instructions-text').innerText = "Quét mã để lưu thông tin tài khoản chuyển khoản";
+
+            const qrLoading = document.getElementById('qr-loading');
+            const qrImg = document.getElementById('qr-image');
+            
+            qrLoading.classList.remove('hidden');
+            qrImg.src = "https://img.vietqr.io/image/tpb-77778738888-print.png?accountName=HUYNH%20TAN%20DAT";
+
+            qrImg.onload = function() {
+                qrLoading.classList.add('hidden');
+            };
+
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        function handleDayButtonClick(dayIndex) {
+            if (!isAdminUnlocked) {
+                alertModal("Chế độ chỉ xem đang bật. Vui lòng bấm 'Mở khóa' ở góc phải trên để sửa hóa đơn.");
+                return;
+            }
+            openDayModal(dayIndex);
+        }
+
+        // Lấy ngày hiện tại làm mốc nếu cần
+        function getMondayOfCurrentWeek() {
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today.setDate(diff));
+            return monday.toISOString().split('T')[0];
+        }
+
+        // Tải dữ liệu từ LocalStorage hoặc khởi tạo mặc định
+        function loadData() {
+            const savedState = localStorage.getItem('food_calculator_state');
+            if (savedState) {
+                try {
+                    appState = JSON.parse(savedState);
+                    if (!appState.days || appState.days.length !== 5) {
+                        resetToDefaultState();
+                    }
+                } catch (e) {
+                    resetToDefaultState();
+                }
+            } else {
+                resetToDefaultState();
+            }
+            
+            // Đồng bộ UI
+            document.getElementById('week-start').value = appState.weekStartDate;
+            updateDateHeaders();
+            applyAdminRights(); // Đồng bộ bảo mật
+            renderTable();
+            renderDayIndicators();
+        }
+
+        function resetToDefaultState() {
+            appState.weekStartDate = "2026-06-29";
+            appState.members = [...DEFAULT_MEMBERS];
+            appState.days = [
+                { discount: 100, ship: 30, prices: { "Trần Thế Đức": 62, "Mai Thảo": 62, "Phúc Vinh": 62 } },
+                { discount: 0, ship: 0, prices: { "Hoàng Lan": 31 } },
+                { discount: 0, ship: 0, prices: { "Thảo Nguyên": 46 } },
+                { discount: 0, ship: 0, prices: {} },
+                { discount: 0, ship: 0, prices: { "Trần Thế Đức": 30, "Nhật Minh": 25, "Thế Duy": 30 } }
+            ];
+            appState.adjustments = { "Trần Thế Đức": 100, "Phúc Vinh": 20, "Tuệ Nguyễn": -68 };
+            appState.paid = {};
+            saveToLocalStorage();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('food_calculator_state', JSON.stringify(appState));
+        }
+
+        // Tính ngày cho tiêu đề cột & Ngày kết thúc Thứ Sáu
+        function updateDateHeaders() {
+            const startStr = document.getElementById('week-start').value;
+            appState.weekStartDate = startStr;
+            saveToLocalStorage();
+
+            const startDate = new Date(startStr);
+            
+            // Tính toán ngày Thứ 6 (Mon + 4 ngày)
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 4);
+            const endDateString = endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('week-end').value = endDateString;
+
+            for (let i = 0; i < 5; i++) {
+                const currentDay = new Date(startDate);
+                currentDay.setDate(startDate.getDate() + i);
+                
+                const dayString = currentDay.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                
+                // Cập nhật thẻ header table
+                const elHeader = document.getElementById(`header-date-${i}`);
+                if (elHeader) elHeader.innerText = dayString;
+
+                // Cập nhật nút ngoài
+                const elBtnDate = document.getElementById(`btn-day-date-${i}`);
+                if (elBtnDate) elBtnDate.innerText = dayString;
+            }
+        }
+
+        // Sự kiện đổi ngày bắt đầu tuần
+        document.getElementById('week-start').addEventListener('change', function() {
+            updateDateHeaders();
+            renderTable();
+            renderDayIndicators();
+        });
+
+        function changeWeek(offset) {
+            if (!isAdminUnlocked) return;
+            let baseDate = new Date();
+            if (offset !== 0) {
+                const current = new Date(document.getElementById('week-start').value);
+                current.setDate(current.getDate() + (offset * 7));
+                baseDate = current;
+            } else {
+                const day = baseDate.getDay();
+                const diff = baseDate.getDate() - day + (day === 0 ? -6 : 1);
+                baseDate = new Date(baseDate.setDate(diff));
+            }
+            document.getElementById('week-start').value = baseDate.toISOString().split('T')[0];
+            updateDateHeaders();
+            renderTable();
+            renderDayIndicators();
+        }
+
+        // --- TÍNH TOÁN THEO CÔNG THỨC ---
+        function getDiscountPerPerson(dayIndex) {
+            const day = appState.days[dayIndex];
+            if (!day) return 0;
+            
+            const count = Object.values(day.prices).filter(val => val && parseFloat(val) > 0).length;
+            if (count === 0) return 0;
+
+            const totalDiscount = parseFloat(day.discount) || 0;
+            const totalShip = parseFloat(day.ship) || 0;
+
+            const netDiscount = totalDiscount - totalShip;
+            return netDiscount / count;
+        }
+
+        function calculateMemberDayCost(memberName, dayIndex) {
+            const day = appState.days[dayIndex];
+            if (!day) return 0;
+
+            const originalPrice = parseFloat(day.prices[memberName]) || 0;
+            if (originalPrice === 0) return 0;
+
+            const discountPerPerson = getDiscountPerPerson(dayIndex);
+            
+            const finalCost = originalPrice - discountPerPerson;
+            return finalCost;
+        }
+
+        // --- RENDER GIAO DIỆN CHÍNH ---
+        function renderTable() {
+            const tbody = document.getElementById('members-list-table');
+            const emptyState = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+
+            if (appState.members.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Sắp xếp thành viên theo bảng chữ cái
+            const sortedMembers = [...appState.members].sort((a, b) => a.localeCompare(b, 'vi'));
+
+            let totalColSum = 0;
+            let totalColPaid = 0;
+            let totalColRemaining = 0;
+            let totalColAdjust = 0;
+            let dailySumGoc = [0, 0, 0, 0, 0];
+            let dailySumThucTe = [0, 0, 0, 0, 0];
+
+            sortedMembers.forEach((member) => {
+                let rowSum = 0; 
+                let cellsHtml = '';
+
+                for (let d = 0; d < 5; d++) {
+                    const priceGoc = parseFloat(appState.days[d].prices[member]) || 0;
+                    const finalCost = calculateMemberDayCost(member, d);
+                    rowSum += finalCost;
+
+                    dailySumGoc[d] += priceGoc;
+                    dailySumThucTe[d] += finalCost;
+
+                    if (priceGoc > 0) {
+                        // MỚI: Đã loại bỏ hoàn toàn các cụm text nhỏ "+-0.0k bớt" để giữ vững độ cao của mọi dòng bảng luôn đồng đều
+                        cellsHtml += `
+                            <td class="py-2.5 px-3 text-center border-r border-slate-200" title="Giá gốc: ${priceGoc} - Phải trả: ${finalCost.toFixed(1)}">
+                                <div class="font-semibold text-slate-800">${priceGoc}</div>
+                            </td>
+                        `;
+                    } else {
+                        cellsHtml += `<td class="py-2.5 px-3 text-center text-slate-300 border-r border-slate-200 font-mono">-</td>`;
+                    }
+                }
+
+                const adjust = parseFloat(appState.adjustments[member]) || 0;
+                const totalNeedToPay = rowSum - adjust;
+                const paid = parseFloat(appState.paid[member]) || 0;
+                const remaining = totalNeedToPay - paid;
+
+                totalColSum += totalNeedToPay;
+                totalColPaid += paid;
+                totalColRemaining += remaining;
+                totalColAdjust += adjust;
+
+                const isPaidCompleted = remaining <= 0.01;
+                const inputDisabledAttr = !isAdminUnlocked ? 'disabled' : '';
+
+                // Bôi màu dòng chưa trả xong (Đỏ nhạt: bg-red-50/70)
+                const rowBgClass = isPaidCompleted ? "bg-white hover:bg-slate-50" : "bg-red-50/70 hover:bg-red-100/50";
+                const stickyCellBg = isPaidCompleted ? "bg-white" : "bg-[#fef2f2]";
+
+                const tr = document.createElement('tr');
+                tr.className = `${rowBgClass} transition border-b border-slate-100`;
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 font-semibold text-slate-800 sticky left-0 ${stickyCellBg} shadow-[1px_0_0_0_#e2e8f0] z-10 flex items-center justify-between group">
+                        <span class="truncate pr-1">${member}</span>
+                        ${isAdminUnlocked ? `
+                        <button onclick="removeMember('${member}')" class="text-slate-300 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition duration-150 p-1" title="Xóa thành viên">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>` : ''}
+                    </td>
+                    ${cellsHtml}
+                    <!-- BÙ TRỪ -->
+                    <td class="py-2.5 px-3 text-center bg-blue-50/20 border-r border-slate-200">
+                        <input type="number" step="any" value="${adjust !== 0 ? adjust : ''}" placeholder="0" 
+                               onchange="updateAdjustment('${member}', this.value)" 
+                               ${inputDisabledAttr}
+                               class="w-full text-center bg-transparent border-0 border-b border-transparent hover:border-slate-300 focus:border-blue-500 font-semibold focus:outline-none focus:ring-0 p-0 text-slate-700 disabled:cursor-not-allowed">
+                    </td>
+                    <!-- SUM -->
+                    <td class="py-2.5 px-3 text-center bg-amber-50/30 text-amber-900 font-bold border-r border-slate-200">
+                        ${totalNeedToPay.toFixed(1)}
+                    </td>
+                    <!-- ĐÃ TRẢ -->
+                    <td class="py-2.5 px-3 text-center bg-emerald-50/20 border-r border-slate-200">
+                        <input type="number" step="any" value="${paid !== 0 ? paid : ''}" placeholder="0" 
+                               onchange="updatePaid('${member}', this.value)" 
+                               ${inputDisabledAttr}
+                               class="w-full text-center bg-transparent border-0 border-b border-transparent hover:border-slate-300 focus:border-emerald-500 font-semibold focus:outline-none focus:ring-0 p-0 text-emerald-700 disabled:cursor-not-allowed">
+                    </td>
+                    <!-- CÒN LẠI -->
+                    <td class="py-2.5 px-3 text-center font-bold ${!isPaidCompleted ? 'bg-rose-50/40 text-rose-700' : 'bg-emerald-50 text-emerald-800'}">
+                        ${remaining.toFixed(1)}
+                    </td>
+                    <!-- QR THANH TOÁN / ĐÃ TRẢ XONG -->
+                    <td class="py-2.5 px-3 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            ${!isPaidCompleted ? `
+                                <button onclick="showQR('${member}', ${remaining})" class="bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs py-1 px-2.5 rounded-lg font-bold flex items-center gap-1 transition duration-150" title="Tạo mã QR thanh toán nhanh">
+                                    <i class="fa-solid fa-qrcode"></i> QR
+                                </button>
+                            ` : `
+                                <span class="text-emerald-600 text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Xong</span>
+                            `}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // THÊM DÒNG TỔNG CỘNG Ở CUỐI BẢNG (FOOTER - ĐÃ LOẠI BỎ CHỮ 'k' VÀ CÁC THÔNG TIN PHỤ)
+            let dailyTotalCells = '';
+            for (let d = 0; d < 5; d++) {
+                const totalVal = dailySumGoc[d] % 1 === 0 ? dailySumGoc[d].toFixed(0) : dailySumGoc[d].toFixed(1);
+                dailyTotalCells += `
+                    <td class="py-3 px-3 text-center border-r border-slate-200 bg-slate-100/60">
+                        <div class="font-bold text-slate-800 text-sm">${totalVal}</div>
+                    </td>
+                `;
+            }
+
+            const trTotal = document.createElement('tr');
+            trTotal.className = "bg-slate-100 font-bold border-t-2 border-slate-300 text-xs";
+            trTotal.innerHTML = `
+                <td class="py-3 px-4 sticky left-0 bg-slate-100 shadow-[1px_0_0_0_#cbd5e1] z-10 text-slate-900">TỔNG CỘNG</td>
+                ${dailyTotalCells}
+                <!-- TỔNG BÙ TRỪ -->
+                <td class="py-3 px-3 text-center border-r border-slate-200 bg-blue-100/40 text-blue-800">${totalColAdjust.toFixed(1)}</td>
+                <!-- TỔNG SUM CẦN TRẢ -->
+                <td class="py-3 px-3 text-center border-r border-slate-200 bg-amber-100 text-amber-900">${totalColSum.toFixed(1)}</td>
+                <!-- TỔNG ĐÃ TRẢ -->
+                <td class="py-3 px-3 text-center border-r border-slate-200 bg-emerald-100 text-emerald-900">${totalColPaid.toFixed(1)}</td>
+                <!-- TỔNG CÒN LẠI -->
+                <td class="py-3 px-3 text-center bg-rose-100 text-rose-900">${totalColRemaining.toFixed(1)}</td>
+                <td class="py-3 px-3 text-center bg-slate-100"></td>
+            `;
+            tbody.appendChild(trTotal);
+        }
+
+        // Cập nhật trạng thái hiển thị "Đã nhập/Chưa nhập" trên các nút chọn ngày ngoài trang chủ
+        // Chỉ số lượng đặt và chênh lệch giảm ship
+        function renderDayIndicators() {
+            for (let d = 0; d < 5; d++) {
+                const day = appState.days[d];
+                const activeCount = Object.keys(day.prices).length;
+                const statusEl = document.getElementById(`btn-day-status-${d}`);
+                
+                if (statusEl) {
+                    if (activeCount > 0) {
+                        statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> ${activeCount} người đặt (${day.discount - day.ship >= 0 ? 'bớt' : 'thêm'} ${(day.discount - day.ship)}k)</span>`;
+                    } else {
+                        statusEl.innerHTML = `<span class="text-slate-400">Chưa ăn</span>`;
+                    }
+                }
+            }
+        }
+
+        // --- HÀNH ĐỘNG THÊM / XÓA THÀNH VIÊN ---
+        function addMember() {
+            if (!isAdminUnlocked) return;
+            const input = document.getElementById('new-member-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            if (appState.members.includes(name)) {
+                alertModal(`Thành viên "${name}" đã tồn tại.`);
+                return;
+            }
+
+            appState.members.push(name);
+            saveToLocalStorage();
+            renderTable();
+            input.value = '';
+        }
+
+        function removeMember(name) {
+            if (!isAdminUnlocked) return;
+            if (confirm(`Bạn có chắc muốn xóa thành viên "${name}" ra khỏi danh sách tuần?`)) {
+                appState.members = appState.members.filter(m => m !== name);
+                
+                for (let d = 0; d < 5; d++) {
+                    delete appState.days[d].prices[name];
+                }
+                delete appState.adjustments[name];
+                delete appState.paid[name];
+
+                saveToLocalStorage();
+                renderTable();
+                renderDayIndicators();
+            }
+        }
+
+        function updateAdjustment(member, val) {
+            if (!isAdminUnlocked) return;
+            const value = parseFloat(val) || 0;
+            if (value === 0) {
+                delete appState.adjustments[member];
+            } else {
+                appState.adjustments[member] = value;
+            }
+            saveToLocalStorage();
+            renderTable();
+        }
+
+        // Cập nhật giá trị đã thanh toán
+        function updatePaid(member, val) {
+            if (!isAdminUnlocked) return;
+            const value = parseFloat(val) || 0;
+            if (value === 0) {
+                delete appState.paid[member];
+            } else {
+                appState.paid[member] = value;
+            }
+            saveToLocalStorage();
+            renderTable();
+        }
+
+        // --- ĐIỀU KHIỂN MODAL CHỈNH SỬA THEO NGÀY (DAY MODAL) ---
+        let currentEditingDayIndex = null;
+
+        function openDayModal(dayIndex) {
+            currentEditingDayIndex = dayIndex;
+            const daysName = ["THỨ HAI", "THỨ BA", "THỨ TƯ", "THỨ NĂM", "THỨ SÁU"];
+            const day = appState.days[dayIndex];
+            
+            const startDate = new Date(appState.weekStartDate);
+            const currentDayDate = new Date(startDate);
+            currentDayDate.setDate(startDate.getDate() + dayIndex);
+            const dateStr = currentDayDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            document.getElementById('modal-day-title').innerText = `NHẬP LIỆU ${daysName[dayIndex]}`;
+            document.getElementById('modal-day-subtitle').innerText = `Ngày ${dateStr}`;
+
+            document.getElementById('day-discount').value = day.discount || '';
+            document.getElementById('day-ship').value = day.ship || '';
+
+            renderModalMemberPrices(day);
+
+            document.getElementById('day-modal').classList.remove('hidden');
+            calculateDayPreview();
+        }
+
+        function renderModalMemberPrices(day) {
+            const container = document.getElementById('modal-member-prices-list');
+            container.innerHTML = '';
+
+            const sortedMembers = [...appState.members].sort((a, b) => a.localeCompare(b, 'vi'));
+
+            sortedMembers.forEach((member) => {
+                const price = day.prices[member] || '';
+                
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-2 hover:bg-slate-100 rounded-lg transition duration-150 bg-white shadow-sm border border-slate-100";
+                div.innerHTML = `
+                    <span class="text-sm font-semibold text-slate-700">${member}</span>
+                    <div class="flex items-center gap-2">
+                        <input type="number" data-member="${member}" value="${price}" 
+                               oninput="calculateDayPreview()" 
+                               placeholder="Giá gốc" 
+                               class="modal-price-input w-24 text-right text-sm font-semibold border border-slate-200 rounded-lg py-1 px-2.5 focus:ring-1 focus:ring-orange-500 focus:outline-none">
+                        <span class="text-xs text-slate-400 font-bold w-4">k</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function calculateDayPreview() {
+            if (currentEditingDayIndex === null) return;
+
+            const discount = parseFloat(document.getElementById('day-discount').value) || 0;
+            const ship = parseFloat(document.getElementById('day-ship').value) || 0;
+
+            const inputs = document.querySelectorAll('.modal-price-input');
+            let activeCount = 0;
+            inputs.forEach(input => {
+                if (parseFloat(input.value) > 0) activeCount++;
+            });
+
+            let discountPerPerson = 0;
+            if (activeCount > 0) {
+                discountPerPerson = (discount - ship) / activeCount;
+            }
+
+            document.getElementById('preview-count').innerText = `${activeCount} người ăn`;
+            document.getElementById('preview-discount-per-person').innerText = `${discountPerPerson >= 0 ? 'Bớt ' : 'Thêm '}${Math.abs(discountPerPerson).toFixed(2)} k/người`;
+        }
+
+        function clearAllPricesInModal() {
+            const inputs = document.querySelectorAll('.modal-price-input');
+            inputs.forEach(input => input.value = '');
+            calculateDayPreview();
+        }
+
+        // Đóng Day modal
+        function closeDayModal() {
+            document.getElementById('day-modal').classList.add('hidden');
+            currentEditingDayIndex = null;
+        }
+
+        function saveDayData() {
+            if (currentEditingDayIndex === null) return;
+
+            const discount = parseFloat(document.getElementById('day-discount').value) || 0;
+            const ship = parseFloat(document.getElementById('day-ship').value) || 0;
+
+            const day = appState.days[currentEditingDayIndex];
+            day.discount = discount;
+            day.ship = ship;
+            day.prices = {};
+
+            const inputs = document.querySelectorAll('.modal-price-input');
+            inputs.forEach(input => {
+                const member = input.getAttribute('data-member');
+                const val = parseFloat(input.value) || 0;
+                if (val > 0) {
+                    day.prices[member] = val;
+                }
+            });
+
+            saveToLocalStorage();
+            renderTable();
+            renderDayIndicators();
+            closeDayModal();
+        }
+
+        // --- ĐIỀU KHIỂN HÀNG LOẠT THÀNH VIÊN ---
+        function openBulkMembersModal() {
+            if (!isAdminUnlocked) return;
+            document.getElementById('bulk-names-input').value = appState.members.join('\n');
+            document.getElementById('bulk-modal').classList.remove('hidden');
+        }
+
+        function closeBulkMembersModal() {
+            document.getElementById('bulk-modal').classList.add('hidden');
+        }
+
+        function saveBulkMembers() {
+            if (!isAdminUnlocked) return;
+            const text = document.getElementById('bulk-names-input').value;
+            const names = text.split('\n')
+                              .map(name => name.trim())
+                              .filter(name => name.length > 0);
+
+            appState.members = [...new Set(names)];
+            
+            saveToLocalStorage();
+            renderTable();
+            closeBulkMembersModal();
+        }
+
+        // --- RESET DATA TUẦN ---
+        function resetData() {
+            if (!isAdminUnlocked) return;
+            if (confirm("Hành động này sẽ XÓA TOÀN BỘ tiền ăn, giảm giá và bù trừ của tuần hiện tại. Bạn có chắc muốn thực hiện?")) {
+                appState.days = [
+                    { discount: 0, ship: 0, prices: {} },
+                    { discount: 0, ship: 0, prices: {} },
+                    { discount: 0, ship: 0, prices: {} },
+                    { discount: 0, ship: 0, prices: {} },
+                    { discount: 0, ship: 0, prices: {} }
+                ];
+                appState.adjustments = {};
+                appState.paid = {};
+                saveToLocalStorage();
+                renderTable();
+                renderDayIndicators();
+            }
+        }
+
+        // --- HIỂN THỊ QR CHUYỂN KHOẢN ---
+        function showQR(memberName, remainingAmount) {
+            document.getElementById('qr-member-name').innerText = memberName;
+            document.getElementById('qr-title-text').innerText = "VIETQR THANH TOÁN TỰ ĐỘNG";
+            document.getElementById('qr-instructions-text').innerText = "Vui lòng quét mã bên dưới để chuyển khoản tiền ăn";
+            
+            const amountInVND = Math.round(remainingAmount * 1000);
+            document.getElementById('qr-amount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amountInVND);
+
+            const unsignedName = removeVietnameseTones(memberName).replace(/\s+/g, ' ');
+            const description = `${DEFAULT_TRANSFER_PREFIX} ${unsignedName}`.substring(0, 50);
+            
+            document.getElementById('qr-desc').innerText = description;
+
+            const bankId = "tpb";
+            const accountNo = "77778738888";
+            const accountName = encodeURIComponent("HUYNH TAN DAT");
+            const encodedDesc = encodeURIComponent(description);
+            
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-print.png?amount=${amountInVND}&addInfo=${encodedDesc}&accountName=${accountName}`;
+
+            const qrLoading = document.getElementById('qr-loading');
+            const qrImg = document.getElementById('qr-image');
+            
+            qrLoading.classList.remove('hidden');
+            qrImg.src = qrUrl;
+
+            qrImg.onload = function() {
+                qrLoading.classList.add('hidden');
+            };
+
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        // Đóng QR modal
+        function closeQrModal() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+
+        function handleQrError() {
+            document.getElementById('qr-loading').innerHTML = `
+                <div class="text-rose-500 p-4 text-xs font-semibold">
+                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1 block"></i>
+                    Không thể tải mã QR. Vui lòng quét thủ công thông tin ngân hàng.
+                </div>
+            `;
+        }
+
+        // --- SAO CHÉP TEXT BÁO CÁO NHÓM CHAT ---
+        function generateReport() {
+            const startStr = appState.weekStartDate;
+            const startDate = new Date(startStr);
+            const currentDayDate = new Date(startDate);
+            currentDayDate.setDate(startDate.getDate() + 4);
+            const endDateStr = currentDayDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const startDateStr = startDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            let report = `📢 BÁO CÁO TIỀN ĂN TRƯA TUẦN [ ${startDateStr} - ${endDateStr} ]\n`;
+            report += `🏦 TPBank: 77778738888 - HUYNH TAN DAT\n`;
+            report += `🔧 Công thức: Sum = Tổng tiền tuần - Bù trừ\n`;
+            report += `-----------------------------------------\n`;
+            report += `Tên Thành Viên     | Tổng | Bù trừ | Phải trả | Đã trả | Còn lại\n`;
+            report += `-----------------------------------------\n`;
+
+            const sortedMembers = [...appState.members].sort((a, b) => a.localeCompare(b, 'vi'));
+            
+            let totalSum = 0;
+            let totalPaid = 0;
+            let totalRemaining = 0;
+            let totalAdjust = 0;
+            let pendingMembersCount = 0;
+
+            sortedMembers.forEach(member => {
+                let rowSum = 0;
+                for (let d = 0; d < 5; d++) {
+                    rowSum += calculateMemberDayCost(member, d);
+                }
+                const adjust = parseFloat(appState.adjustments[member]) || 0;
+                
+                const totalNeedToPay = rowSum - adjust;
+                const paid = parseFloat(appState.paid[member]) || 0;
+                const remaining = totalNeedToPay - paid;
+
+                totalSum += totalNeedToPay;
+                totalPaid += paid;
+                totalRemaining += remaining;
+                totalAdjust += adjust;
+
+                if (remaining > 0.01 || totalNeedToPay > 0 || adjust !== 0) {
+                    const paddedName = member.padEnd(18).substring(0, 18);
+                    const paddedRowSum = `${rowSum.toFixed(0)}k`.padStart(4);
+                    const paddedAdjust = `${adjust.toFixed(0)}k`.padStart(6);
+                    const paddedTotal = `${totalNeedToPay.toFixed(0)}k`.padStart(8);
+                    const paddedPaid = `${paid.toFixed(0)}k`.padStart(6);
+                    const paddedRemaining = `${remaining.toFixed(0)}k`.padStart(8);
+                    
+                    report += `${paddedName} | ${paddedRowSum} | ${paddedAdjust} | ${paddedTotal} | ${paddedPaid} | ${paddedRemaining}\n`;
+                    if (remaining > 0.01) {
+                        pendingMembersCount++;
+                    }
+                }
+            });
+
+            report += `-----------------------------------------\n`;
+            report += `TỔNG CỘNG           | ${totalSum.toFixed(0)}k  | ${totalAdjust.toFixed(0)}k  | ${totalSum.toFixed(0)}k  | ${totalPaid.toFixed(0)}k | ${totalRemaining.toFixed(0)}k\n\n`;
+            
+            if (pendingMembersCount > 0) {
+                report += `👉 Nhắc nhở: Hiện tại còn ${pendingMembersCount} bạn chưa thanh toán xong tiền ăn tuần này. Vui lòng quét QR hoặc chuyển khoản sớm cho mình nha. Xin cảm ơn cả nhà! ❤️`;
+            } else {
+                report += `🎉 Tuyệt vời! Cả team đã hoàn thành thanh toán tiền ăn tuần này. Cảm ơn mọi người!`;
+            }
+
+            document.getElementById('report-text-area').value = report;
+            document.getElementById('report-modal').classList.remove('hidden');
+            document.getElementById('copy-success-msg').classList.add('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        // Sao chép báo cáo
+        function copyReportText() {
+            const textContent = document.getElementById('report-text-area');
+            textContent.select();
+            document.execCommand('copy');
+            
+            const successMsg = document.getElementById('copy-success-msg');
+            successMsg.classList.remove('hidden');
+            setTimeout(() => {
+                successMsg.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- XUẤT/NHẬP PHỤC VỤ SAO LƯU DỮ LIỆU ---
+        function exportJSON() {
+            if (!isAdminUnlocked) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href",     dataStr     );
+            dlAnchorElem.setAttribute("download", `tien-an-trua-tuan-${appState.weekStartDate}.json`);
+            dlAnchorElem.click();
+        }
+
+        function triggerImport() {
+            if (!isAdminUnlocked) return;
+            document.getElementById('import-file').click();
+        }
+
+        function importJSON(event) {
+            if (!isAdminUnlocked) return;
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedState = JSON.parse(e.target.result);
+                    if (importedState.members && importedState.days) {
+                        appState = importedState;
+                        saveToLocalStorage();
+                        
+                        document.getElementById('week-start').value = appState.weekStartDate;
+                        updateDateHeaders();
+                        renderTable();
+                        renderDayIndicators();
+                        alertModal("Nhập dữ liệu thành công!");
+                    } else {
+                        alertModal("File JSON không hợp lệ hoặc thiếu cấu trúc.");
+                    }
+                } catch (error) {
+                    alertModal("Có lỗi xảy ra khi đọc file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- TIỆN ÍCH KHÁC ---
+        function removeVietnameseTones(str) {
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y");
+            str = str.replace(/đ/g,"d");
+            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+            str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+            str = str.replace(/Ì|Í|Ị|ỉ|Ĩ/g, "I");
+            str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+            str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+            str = str.replace(/Ỳ|Ý|Ạ|Ỷ|Ỹ/g, "Y");
+            str = str.replace(/Đ/g, "D");
+            str = str.replace(/[^A-Za-z0-9 ]/g, '');
+            return str;
+        }
+
+        function alertModal(msg) {
+            const alertBox = document.createElement('div');
+            alertBox.className = "fixed top-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold py-3 px-5 rounded-xl shadow-2xl z-50 flex items-center gap-2 border border-slate-700 animate-slide-down";
+            alertBox.innerHTML = `<i class="fa-solid fa-circle-info text-orange-400"></i> ${msg}`;
+            document.body.appendChild(alertBox);
+            setTimeout(() => {
+                alertBox.remove();
+            }, 3000);
+        }
+
+        // Tải trang lần đầu
+        window.onload = function() {
+            loadData();
+        };
+    </script>
+
+    <!-- Thêm hiệu ứng chuyển động mượt mà -->
+    <style>
+        @keyframes slide-down {
+            0% { transform: translate(-50%, -20px); opacity: 0; }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .animate-slide-down {
+            animation: slide-down 0.25s ease-out forwards;
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 4s ease-in-out infinite;
+        }
+    </style>
+</body>
+</html>
