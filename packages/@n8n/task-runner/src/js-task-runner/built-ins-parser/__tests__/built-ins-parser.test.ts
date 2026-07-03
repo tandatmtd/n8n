@@ -266,6 +266,7 @@ describe('BuiltInsParser', () => {
 				'$fromai',
 				'$fromAi',
 				'$items',
+				'$tool',
 				'$json',
 				'$node',
 				'$self',
@@ -283,6 +284,7 @@ describe('BuiltInsParser', () => {
 				'Interval',
 				'Duration',
 				'$execution',
+				'$evaluation',
 				'$vars',
 				'$secrets',
 				'$executionId',
@@ -295,6 +297,7 @@ describe('BuiltInsParser', () => {
 				'$thisRunIndex',
 				'$nodeVersion',
 				'$nodeId',
+				'$agentInfo',
 				'$webhookId',
 			]);
 		});
